@@ -5,7 +5,7 @@ import hashlib
 
 app = Flask(__name__)
 DB_PATH = 'users.db'
-
+@app.route("/")
 # --- 비밀번호 해시 처리 ---
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -83,7 +83,10 @@ def register():
         return jsonify({"status": "fail", "message": str(e)}), 500
 
 # --- 서버 시작 ---
+
+
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=8080, debug=True)
+
 
