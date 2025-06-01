@@ -99,6 +99,33 @@ def get_settings(user_id):
         return jsonify({"status": "success", "settings": dict(zip(keys, row))})
     else:
         return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
+@app.route('/api/settings/<user_id>', methods=['POST'])
+def save_settings(user_id):
+    data = request.get_json()
+    conn = sqlite3.connect("your_database.db")
+    cur = conn.cursor()
+
+    # 기존 설정 존재 여부 확인
+    cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
+    exists = cur.fetchone()
+
+    if exists:
+        # UPDATE
+        cur.execute("""
+            UPDATE settings
+            SET vgesture_command = ?, sensitivity = ?, dark_mode = ?
+            WHERE user_id = ?
+        """, (data["vgesture_command"], data["sensitivity"], data["dark_mode"], user_id))
+    else:
+        # INSERT
+        cur.execute("""
+            INSERT INTO settings (user_id, vgesture_command, sensitivity, dark_mode)
+            VALUES (?, ?, ?, ?)
+        """, (user_id, data["vgesture_command"], data["sensitivity"], data["dark_mode"]))
+
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success"})
 
 # --- 서버 시작 ---
 if __name__ == '__main__':
