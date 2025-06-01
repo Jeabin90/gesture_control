@@ -85,6 +85,21 @@ def register():
         print(traceback.format_exc())  # 에러 자세히 출력
         return jsonify({"status": "fail", "message": str(e)}), 500
 
+
+@app.route('/api/settings/<user_id>', methods=['GET'])
+def get_settings(user_id):
+    conn = sqlite3.connect("your_database.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        keys = ['user_id', 'vgesture_command', 'sensitivity', 'dark_mode']
+        return jsonify({"status": "success", "settings": dict(zip(keys, row))})
+    else:
+        return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
+
 # --- 서버 시작 ---
 if __name__ == '__main__':
     init_db()
