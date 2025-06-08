@@ -186,3 +186,6 @@ if __name__ == '__main__':
     init_db()
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)
+print("BASE_DIR:", BASE_DIR)
+print("Working Dir:", os.getcwd())
+print("DB Path:", DB_PATH)
