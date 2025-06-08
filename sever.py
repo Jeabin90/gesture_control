@@ -5,7 +5,8 @@ import hashlib
 import traceback
 
 app = Flask(__name__)
-DB_PATH = 'users.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'users.db')
 
 # --- 비밀번호 해시 처리 ---
 def hash_password(password):
