@@ -139,10 +139,11 @@ def get_settings(user_id):
     else:
         return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
 
-# --- 설정 저장 API ---
-@app.route('/api/settings/<user_id>', methods=['POST'])
+# --- 설정 저장 API ---@app.route('/api/settings/<user_id>', methods=['POST'])
 def save_settings(user_id):
     data = request.get_json()
+    print(f"save_settings called for user_id={user_id} with data={data}")
+    
     if not data:
         return jsonify({"status": "fail", "message": "설정 데이터 없음"}), 400
 
@@ -150,11 +151,9 @@ def save_settings(user_id):
         conn = get_db()
         cur = conn.cursor()
 
-        print("Received data:", data)  # 디버깅용 출력
-
         cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
         exists = cur.fetchone()
-        print("Exists in DB?", exists is not None)
+        print("settings 존재 여부:", exists is not None)
 
         if exists:
             cur.execute("""
@@ -182,10 +181,11 @@ def save_settings(user_id):
 
         conn.commit()
         conn.close()
+        print("설정 저장 완료")
         return jsonify({"status": "success", "message": "설정 저장 완료"})
 
     except Exception as e:
-        print("Error during saving settings:", e)
+        print("설정 저장 중 에러:", e)
         return jsonify({"status": "fail", "message": str(e)}), 500
 
 
