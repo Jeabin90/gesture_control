@@ -5,6 +5,8 @@ import hashlib
 import traceback
 
 app = Flask(__name__)
+
+# DB 경로 설정
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'users.db')
 
@@ -12,7 +14,7 @@ DB_PATH = os.path.join(BASE_DIR, 'users.db')
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# --- DB 자동 초기화 ---
+# --- DB 초기화 ---
 def init_db():
     db_exists = os.path.exists(DB_PATH)
     conn = sqlite3.connect(DB_PATH)
@@ -41,7 +43,7 @@ def init_db():
         );
     """)
 
-    # 기존 settings 테이블에 컬럼이 없을 경우 대비해서 background_color 추가 (기존 DB 대응)
+    # 기존 DB에 background_color가 없을 경우 추가
     try:
         cur.execute("ALTER TABLE settings ADD COLUMN background_color TEXT DEFAULT '#ffffff'")
     except sqlite3.OperationalError as e:
@@ -85,6 +87,8 @@ def login():
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
+    print("[DEBUG] Received registration data:", data)  # 디버깅 로그
+
     try:
         conn = get_db()
         cur = conn.cursor()
@@ -106,6 +110,7 @@ def register():
         conn.commit()
         conn.close()
         return jsonify({"status": "success"})
+
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"status": "fail", "message": str(e)}), 500
