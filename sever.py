@@ -139,7 +139,8 @@ def get_settings(user_id):
     else:
         return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
 
-# --- 설정 저장 API ---@app.route('/api/settings/<user_id>', methods=['POST'])
+# --- 설정 저장 API ---
+@app.route('/api/settings/<user_id>', methods=['POST'])
 def save_settings(user_id):
     data = request.get_json()
     print(f"save_settings called for user_id={user_id} with data={data}")
