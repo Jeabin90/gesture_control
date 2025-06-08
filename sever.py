@@ -62,7 +62,7 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-# --- 루트 경로 (상태 확인용) ---
+# --- 루트 경로 (상태 확인용) --
 @app.route('/')
 def index():
     return "API 서버가 정상 작동 중입니다."
