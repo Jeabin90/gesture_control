@@ -12,7 +12,6 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # --- DB 자동 초기화 ---
-
 def init_db():
     db_exists = os.path.exists(DB_PATH)
     conn = sqlite3.connect(DB_PATH)
@@ -56,12 +55,16 @@ def init_db():
     else:
         print("ℹ️ Database already exists, initialization ensured.")
 
-
 # --- DB 연결 함수 ---
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+# --- 루트 경로 (상태 확인용) ---
+@app.route('/')
+def index():
+    return "API 서버가 정상 작동 중입니다."
 
 # --- 로그인 API ---
 @app.route('/api/login', methods=['POST'])
@@ -124,7 +127,6 @@ def get_settings(user_id):
     else:
         return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
 
-
 # --- 설정 저장 API ---
 @app.route('/api/settings/<user_id>', methods=['POST'])
 def save_settings(user_id):
@@ -171,5 +173,5 @@ def save_settings(user_id):
 # --- 서버 시작 ---
 if __name__ == '__main__':
     init_db()
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=True)
