@@ -146,39 +146,48 @@ def save_settings(user_id):
     if not data:
         return jsonify({"status": "fail", "message": "설정 데이터 없음"}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
-    exists = cur.fetchone()
+        print("Received data:", data)  # 디버깅용 출력
 
-    if exists:
-        cur.execute("""
-            UPDATE settings
-            SET vgesture_command = ?, sensitivity = ?, dark_mode = ?, background_color = ?
-            WHERE user_id = ?
-        """, (
-            data.get("vgesture_command", ""),
-            data.get("sensitivity", 20),
-            int(data.get("dark_mode", False)),
-            data.get("background_color", "#ffffff"),
-            user_id
-        ))
-    else:
-        cur.execute("""
-            INSERT INTO settings (user_id, vgesture_command, sensitivity, dark_mode, background_color)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            user_id,
-            data.get("vgesture_command", ""),
-            data.get("sensitivity", 20),
-            int(data.get("dark_mode", False)),
-            data.get("background_color", "#ffffff")
-        ))
+        cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
+        exists = cur.fetchone()
+        print("Exists in DB?", exists is not None)
 
-    conn.commit()
-    conn.close()
-    return jsonify({"status": "success", "message": "설정 저장 완료"})
+        if exists:
+            cur.execute("""
+                UPDATE settings
+                SET vgesture_command = ?, sensitivity = ?, dark_mode = ?, background_color = ?
+                WHERE user_id = ?
+            """, (
+                data.get("vgesture_command", ""),
+                data.get("sensitivity", 20),
+                int(data.get("dark_mode", False)),
+                data.get("background_color", "#ffffff"),
+                user_id
+            ))
+        else:
+            cur.execute("""
+                INSERT INTO settings (user_id, vgesture_command, sensitivity, dark_mode, background_color)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                user_id,
+                data.get("vgesture_command", ""),
+                data.get("sensitivity", 20),
+                int(data.get("dark_mode", False)),
+                data.get("background_color", "#ffffff")
+            ))
+
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "message": "설정 저장 완료"})
+
+    except Exception as e:
+        print("Error during saving settings:", e)
+        return jsonify({"status": "fail", "message": str(e)}), 500
+
 
 # --- 서버 시작 ---
 if __name__ == '__main__':
