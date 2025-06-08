@@ -12,6 +12,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # --- DB 자동 초기화 ---
+
 def init_db():
     db_exists = os.path.exists(DB_PATH)
     conn = sqlite3.connect(DB_PATH)
@@ -35,16 +36,26 @@ def init_db():
             vgesture_command TEXT,
             sensitivity INTEGER DEFAULT 20,
             dark_mode BOOLEAN DEFAULT 0,
+            background_color TEXT DEFAULT '#ffffff',
             FOREIGN KEY(user_id) REFERENCES users(id)
         );
     """)
 
+    # 기존 settings 테이블에 컬럼이 없을 경우 대비해서 background_color 추가 (기존 DB 대응)
+    try:
+        cur.execute("ALTER TABLE settings ADD COLUMN background_color TEXT DEFAULT '#ffffff'")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" not in str(e):
+            raise
+
     conn.commit()
     conn.close()
+
     if not db_exists:
         print("✅ Database created and initialized.")
     else:
         print("ℹ️ Database already exists, initialization ensured.")
+
 
 # --- DB 연결 함수 ---
 def get_db():
@@ -100,15 +111,19 @@ def register():
 def get_settings(user_id):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM settings WHERE user_id = ?", (user_id,))
+    cur.execute("""
+        SELECT user_id, vgesture_command, sensitivity, dark_mode, background_color
+        FROM settings WHERE user_id = ?
+    """, (user_id,))
     row = cur.fetchone()
     conn.close()
 
     if row:
-        keys = ['user_id', 'vgesture_command', 'sensitivity', 'dark_mode']
+        keys = ['user_id', 'vgesture_command', 'sensitivity', 'dark_mode', 'background_color']
         return jsonify({"status": "success", "settings": dict(zip(keys, row))})
     else:
         return jsonify({"status": "fail", "message": "설정 정보 없음"}), 404
+
 
 # --- 설정 저장 API ---
 @app.route('/api/settings/<user_id>', methods=['POST'])
@@ -127,24 +142,26 @@ def save_settings(user_id):
         # UPDATE
         cur.execute("""
             UPDATE settings
-            SET vgesture_command = ?, sensitivity = ?, dark_mode = ?
+            SET vgesture_command = ?, sensitivity = ?, dark_mode = ?, background_color = ?
             WHERE user_id = ?
         """, (
             data.get("vgesture_command", ""),
             data.get("sensitivity", 20),
             int(data.get("dark_mode", False)),
+            data.get("background_color", "#ffffff"),
             user_id
         ))
     else:
         # INSERT
         cur.execute("""
-            INSERT INTO settings (user_id, vgesture_command, sensitivity, dark_mode)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO settings (user_id, vgesture_command, sensitivity, dark_mode, background_color)
+            VALUES (?, ?, ?, ?, ?)
         """, (
             user_id,
             data.get("vgesture_command", ""),
             data.get("sensitivity", 20),
-            int(data.get("dark_mode", False))
+            int(data.get("dark_mode", False)),
+            data.get("background_color", "#ffffff")
         ))
 
     conn.commit()
